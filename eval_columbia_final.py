@@ -1,9 +1,18 @@
-import os, glob, pickle, numpy as np
+import os, glob, pickle, numpy as np, argparse
 from sklearn.metrics import f1_score, accuracy_score
+from utils.repo_paths import col_data_root, col_pyframes, col_pywork, results_dir
 
-pyworkPath   = '/usershome/cs671_user6/asd_project/ColData/col/pywork'
-pyframesPath = '/usershome/cs671_user6/asd_project/ColData/col/pyframes'
-colSavePath  = '/usershome/cs671_user6/asd_project/ColData'
+parser = argparse.ArgumentParser(
+    description="Columbia F1 evaluation (fps-corrected frame-overlap protocol)"
+)
+parser.add_argument("--pyworkPath", type=str, default=None, help="Dir with tracks.pckl and scores.pckl")
+parser.add_argument("--pyframesPath", type=str, default=None, help="Extracted Columbia frames")
+parser.add_argument("--colSavePath", type=str, default=None, help="ColData root (contains col_labels/)")
+args = parser.parse_args()
+
+pyworkPath   = args.pyworkPath or col_pywork()
+pyframesPath = args.pyframesPath or col_pyframes()
+colSavePath  = args.colSavePath or col_data_root()
 
 # fps conversion factor
 ORIG_FPS = 29.97
@@ -134,7 +143,7 @@ avg_f1 = 100 * (F1s / valid) if valid > 0 else 0
 print(f'\nOur Average F1: {avg_f1:.2f}%  (over {valid} speakers)')
 print(f'Paper reports:  86.10%')
 
-with open('/usershome/cs671_user6/LR-ASD/results/summary.txt', 'a') as f:
+with open(os.path.join(results_dir(), 'summary.txt'), 'a') as f:
     f.write(f'\nColumbia F1 final (fps corrected): {avg_f1:.2f}%\n')
     f.write(f'Paper Columbia F1:                 86.10%\n')
     f.write(f'Note: evaluated on 4/5 speakers (lieb has no speaking frames in our video range)\n')

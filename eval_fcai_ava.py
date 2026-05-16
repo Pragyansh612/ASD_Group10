@@ -1,6 +1,5 @@
-import sys, os, torch, argparse, warnings, glob, pandas, tqdm, subprocess
+import os, torch, argparse, warnings, glob, pandas, tqdm, subprocess
 from subprocess import PIPE
-sys.path.insert(0, '/usershome/cs671_user6/asd_project/LR-ASD')
 from ASD import ASD as ASD_baseline
 from ASD_transformer import ASD as ASD_trans
 from dataLoader import val_loader

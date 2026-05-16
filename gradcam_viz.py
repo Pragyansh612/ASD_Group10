@@ -1,8 +1,27 @@
-import os, sys, cv2, torch, numpy as np, glob
+import os, cv2, torch, numpy as np, glob, argparse
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+from utils.repo_paths import col_pycrop, col_pywork, exps_path, results_dir
 
-sys.path.insert(0, '/usershome/cs671_user6/asd_project/LR-ASD')
+parser = argparse.ArgumentParser(description="GradCAM comparison across ASD variants")
+parser.add_argument("--pycropPath", type=str, default=None)
+parser.add_argument("--pyworkPath", type=str, default=None)
+parser.add_argument("--baselineModel", type=str, default=None)
+parser.add_argument("--transformerModel", type=str, default=None)
+parser.add_argument("--multifaceModel", type=str, default=None)
+args = parser.parse_args()
+
+PYCROP = args.pycropPath or col_pycrop()
+PYWORK = args.pyworkPath or col_pywork()
+BASELINE_CKPT = args.baselineModel or os.path.join(
+    exps_path("exp_baseline", "model"), "model_0022.model"
+)
+TRANSFORMER_CKPT = args.transformerModel or os.path.join(
+    exps_path("ablation1_transformer", "model"), "model_0039.model"
+)
+MULTIFACE_CKPT = args.multifaceModel or os.path.join(
+    exps_path("ablation2_multiface", "model"), "model_0008.model"
+)
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 def load_face_frames(pycrop_path, track_idx, n=16):
@@ -93,26 +112,28 @@ from ASD import ASD as ASD_baseline
 from ASD_transformer import ASD as ASD_trans
 
 baseline = ASD_baseline()
-baseline.loadParameters('exps/exp_baseline/model/model_0022.model')
+baseline.loadParameters(BASELINE_CKPT)
 baseline.eval()
 
 transformer = ASD_trans()
-transformer.loadParameters('exps/ablation1_transformer/model/model_0039.model')
+transformer.loadParameters(TRANSFORMER_CKPT)
 transformer.eval()
 
-# Multi-face model
 from ASD_ablation2 import ASD as ASD_multi
+
 multi = ASD_multi()
-multi.loadParameters('exps/ablation2_multiface/model/model_0008.model')
+multi.loadParameters(MULTIFACE_CKPT)
 multi.eval()
 
 print("All models loaded")
 
-# ── find good frames ──────────────────────────────────────────────────────────
-PYCROP = '/usershome/cs671_user6/asd_project/ColData/col/pycrop'
 import pickle
-tracks  = pickle.load(open('/usershome/cs671_user6/asd_project/ColData/col/pywork/tracks.pckl','rb'))
-scores_baseline = pickle.load(open('/usershome/cs671_user6/asd_project/ColData/col/pywork_baseline/scores.pckl','rb'))
+
+tracks = pickle.load(open(os.path.join(PYWORK, "tracks.pckl"), "rb"))
+scores_baseline_path = os.path.join(col_pywork("pywork_baseline"), "scores.pckl")
+if not os.path.exists(scores_baseline_path):
+    scores_baseline_path = os.path.join(PYWORK, "scores.pckl")
+scores_baseline = pickle.load(open(scores_baseline_path, "rb"))
 
 # Find track with high speaking score (clear speaker)
 best_speaking_idx = None
@@ -183,6 +204,6 @@ plt.suptitle('GradCAM: What Each Model Attends To\n(Red = high attention, Blue =
              fontsize=13, fontweight='bold')
 plt.tight_layout()
 
-out_path = '/usershome/cs671_user6/asd_project/LR-ASD/gradcam_comparison.png'
-plt.savefig(out_path, dpi=150, bbox_inches='tight')
+out_path = os.path.join(results_dir(), "gradcam_comparison.png")
+plt.savefig(out_path, dpi=150, bbox_inches="tight")
 print(f"Saved to {out_path}")

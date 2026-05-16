@@ -83,5 +83,9 @@ ax.set_ylim(60, 100)
 ax.grid(True, alpha=0.3, axis='y')
 
 plt.tight_layout()
-plt.savefig('face_count_ava_breakdown.png', dpi=150, bbox_inches='tight')
-print("\nSaved face_count_ava_breakdown.png")
+import os
+from utils.repo_paths import results_dir
+
+out_path = os.path.join(results_dir(), "face_count_ava_breakdown.png")
+plt.savefig(out_path, dpi=150, bbox_inches="tight")
+print(f"\nSaved {out_path}")

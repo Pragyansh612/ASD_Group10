@@ -1,7 +1,3 @@
-Here is the README text:
-
----
-
 # ASD Generalization Study
 
 **Course:** CS671 Deep Learning | **Group:** 10 | **Guide:** Dr. Jyoti Nigam | **Prof:** Aditya Nigam
@@ -28,6 +24,8 @@ Multi-face inter-speaker context is the dominant driver of domain overfitting in
 
 **Columbia** — 35-minute academic panel discussion, 5 speakers (Bell, Boll, Lieb, Long, Sick). Metric: F1 score. We use a frame-overlap evaluation protocol (FPS conversion 29.97→25fps) applied uniformly across all models due to video version coordinate mismatches with IOU-based GT boxes. Relative comparisons between all models are valid.
 
+Prepare Columbia in the TalkNet/LR-ASD layout under `ColData/col/` (`pyframes/`, `pycrop/`, `pywork/`, `col_labels/`). Full end-to-end preprocessing is in `Columbia_test.py` (face detection, tracking, cropping).
+
 ---
 
 ## Results
@@ -49,73 +47,110 @@ Multi-face inter-speaker context is the dominant driver of domain overfitting in
 | CaMIB | 0.87M | 89.58% | 64.49% | −25.09pp |
 | SCSN | 0.84M | 94.11% | 67.11% | −27.00pp |
 
+### Script map (reproduce each row)
+
+| Model | Train | ASD wrapper | Model code | Columbia scoring | Columbia eval |
+|-------|-------|-------------|------------|------------------|---------------|
+| LR-ASD baseline | `train.py` | `ASD.py` | `model/` | `run_scoring.py` → `ColData/col/pywork/` | `eval_columbia_final.py` |
+| + Transformer | `train_ablation1_transformer.py` | `ASD_transformer.py` | `model_transformer/` | `run_scoring.py` → `pywork/` + `scores_ablation1.pckl` | `eval_columbia_final.py` |
+| + Multi-face mean | `train_ablation2.py` | `ASD_ablation2.py` | `model_ablation2/` | `run_scoring.py` → `pywork_ablation3/` | `eval_columbia_final.py` |
+| + Attention context | `train_attn_context.py` | `ASD_attn_context.py` | `model_attn_context/` | `run_scoring_attn.py` | `eval_columbia_final.py` |
+| + Large capacity | `train_ablation3_large.py` | `ASD_large.py` | `model_large/` | `run_scoring.py` → `pywork_ablation3/` | `eval_columbia_final.py` |
+| + Augmentation | `train_improved.py` | `ASD.py` | `model/` | `run_scoring.py` → `pywork_improved/` | `eval_columbia_final.py` |
+| + Hard negatives | `train_hardneg.py` | `ASD.py` | `model/` | `run_scoring.py` → `pywork_hardneg/` | `eval_columbia_final.py` |
+| TalkNCE | `train_talknce.py` | `ASD_talknce.py` | `model_talknce/` | `run_scoring.py` → `pywork_talknce/` | `eval_columbia_final.py` |
+| CIR-020 | `train_cir_020.py` | `ASD_cir.py` | `model_cir/` | `run_scoring.py` → `pywork_cir020/` | `eval_columbia_final.py` |
+| FCAI adaptive | — (inference only) | `ASD_adaptive.py` | baseline + transformer | `eval_fcai_columbia.py` | `eval_columbia_final.py` (`--pyworkPath` → `pywork_fcai`) |
+| IRM | `train_irm.py` | `ASD_irm.py` | `model_ablation2/` * | `run_scoring_irm.py` | `eval_columbia_irm.py` |
+| CaMIB | `train_camib.py` | `ASD_camib.py` | `model_ablation2/` * | `run_scoring_camib.py` | `eval_columbia_camib.py` |
+| SCSN | `scsn_train.py` | — | small MLP on CLIP | `eval_columbia_scsn.py` | (calibrated scores) |
+| SCER | `train_scer.py` | `ASD_scer.py` | `model_ablation2/` * | same as multi-face | `eval_columbia_final.py` |
+| TalkNet | external | TalkNet-ASD | — | see `TalkNet-exps/` | `eval_columbia_final.py` |
+
+\* IRM, CaMIB, and SCER reuse the multi-face backbone in `model_ablation2/` with different training objectives in `ASD_irm.py`, `ASD_camib.py`, `ASD_scer.py`.
+
 ---
 
 ## Novel Contributions
 
 **CIR — Correlation Independence Regularization**
-Penalizes the absolute Pearson correlation between simultaneous face prediction scores during training. Designed to prevent the model from learning spurious inter-face co-occurrence patterns. Tested at λ=0.05, 0.10, 0.20. Files: `ASD_cir.py`, `train_cir_005.py`, `train_cir_010.py`, `train_cir_020.py`, `model_cir/`
+Penalizes the absolute Pearson correlation between simultaneous face prediction scores during training. Files: `ASD_cir.py`, `train_cir_005.py`, `train_cir_010.py`, `train_cir_020.py`, `model_cir/`
 
 **FCAI — Face-Count Adaptive Inference**
-Inference-time routing system requiring no retraining. Routes single-face frames to LR-ASD baseline (best in-domain accuracy) and multi-face frames to Transformer (best generalization). Best practical system overall. Files: `ASD_adaptive.py`, `eval_fcai_ava.py`, `eval_fcai_columbia.py`
+Inference-time routing: single-face → LR-ASD baseline, multi-face → Transformer. Files: `ASD_adaptive.py`, `eval_fcai_ava.py`, `eval_fcai_columbia.py`
 
 **TalkNCE — Contrastive Audio-Visual Loss**
-Supervised contrastive loss applied to the transformer model. Pushes speaking frame embeddings apart from non-speaking embeddings across different clips, preventing shortcut learning. Files: `ASD_talknce.py`, `train_talknce.py`, `loss_talknce.py`, `model_talknce/`
+Files: `ASD_talknce.py`, `train_talknce.py`, `loss_talknce.py`, `model_talknce/`
 
 **SCSN — Scene-Conditioned Score Calibration Network**
-Uses CLIP ViT-B/32 to encode video frames into 512-dimensional scene embeddings. A 5000-parameter MLP learns to calibrate ASD scores conditioned on scene context. First use of vision-language embeddings for ASD score calibration. Files: `scsn_train.py`, `clip_embed_val.py`, `clip_scene_embed.py`, `eval_columbia_scsn.py`
+CLIP ViT-B/32 scene embeddings + small MLP. Files: `scsn_train.py`, `clip_embed_val.py`, `clip_scene_embed.py`, `eval_columbia_scsn.py`
 
-**IRM — Invariant Risk Minimization (Negative Result)**
-First application of IRM to ASD. Single-face frames as environment 1, multi-face frames as environment 2. Failed because AVA has only 13 single-face clips out of 1786 total — environments too imbalanced for IRM to work. Files: `ASD_irm.py`, `train_irm.py`, `eval_irm_tmp.py`, `run_scoring_irm.py`
-
-**CaMIB — Causal Multimodal Information Bottleneck (Negative Result)**
-Splits 128-dim embedding into causal and shortcut subspaces, predicting only from causal component. Failed because the bottleneck collapsed the score range from −4.9 to +2.7 down to −0.4 to +0.4, losing discriminative signal. Files: `ASD_camib.py`, `train_camib.py`, `eval_camib_tmp.py`, `run_scoring_camib.py`
-
-**SCER — Spurious Correlation Embedding Regularization (Negative Result)**
-Penalizes embedding distance between speaking frames in single vs multi-face environments. Loss was always zero because AVA has no single-face clips — the environments required to compute the loss do not exist in AVA. Files: `ASD_scer.py`, `train_scer.py`
+**IRM / CaMIB / SCER (negative results)** — see script map above; Columbia eval: `eval_columbia_irm.py`, `eval_columbia_camib.py`.
 
 ---
 
 ## Mechanistic Analysis
 
-**Co-occurrence correlation** — Pearson correlation between simultaneous face prediction scores. Multi-face models: r=+0.59 (strong spurious dependency). Transformer: r=−0.09 (near-zero, no inter-face learning). File: `cooccurrence_analysis.py`
+| Analysis | Script | Output |
+|----------|--------|--------|
+| Co-occurrence correlation | `cooccurrence_analysis.py` | `results/cooccurrence_results.csv` |
+| Face-count mAP breakdown | `face_count_ava_breakdown.py` | `results/face_count_ava_breakdown.png` |
+| GradCAM | `gradcam_viz.py` | `results/gradcam_comparison.png` |
+| Calibration ECE | `uncertainty_ece.py` | `results/uncertainty_ece.png` |
+| Scene-type routing | `scene_type_routing.py` | `results/scene_type_routing.png` |
+| Correlation vs domain drop | `scatter_correlation_drop.py` | `results/scatter_correlation_drop.png` |
+| Per-speaker F1 heatmap | `speaker_heatmap.py` | `results/speaker_heatmap.png` |
 
-**Face-count breakdown** — Multi-face model mAP by number of visible faces: 84.77% (1 face) → 64.41% (2 faces) → 43.08% (3+ faces). LR-ASD baseline: 96.89% → 93.53% → 84.30%. File: `face_count_ava_breakdown.py`
+`cooccurrence_analysis.py` skips missing `scores.pckl` files; TalkNet requires `ColData/col/pywork_talknet/scores.pckl` if included.
 
-**GradCAM visualization** — Transformer attends specifically to lip/mouth region. Multi-face model shows diffuse scattered activation. File: `gradcam_viz.py`
-
-**Calibration ECE** — Expected Calibration Error on Columbia. TalkNCE: 0.097 (best). Multi-face: 0.237 (worst). File: `uncertainty_ece.py`
-
-**Scene-type characterization** — Automatic domain characterizer using face statistics. Columbia: 2.11 avg faces/frame, 79.6% multi-face frames, 15.9% speaking overlap → correctly classified as multi-speaker discussion. File: `scene_type_routing.py`
-
-All result figures are in `results/`.
+All figures and CSVs live in **`results/`** only.
 
 ---
 
 ## Repository Structure
 
 ```
-ASD_*.py                    model wrappers for each variant
-train_*.py                  training scripts
-dataLoader_*.py             data loaders
-eval_columbia_*.py          Columbia F1 evaluation scripts
-run_scoring*.py             Columbia inference pipeline
-model_*/                    model architectures (Encoder, Classifier, Model)
-utils/                      AVA evaluation utilities
-cooccurrence_analysis.py    inter-face correlation measurement
-gradcam_viz.py              GradCAM activation visualization
-face_count_ava_breakdown.py mAP by number of visible faces
-scatter_correlation_drop.py correlation vs domain drop scatter plot
-scene_type_routing.py       automatic scene-type characterizer
-uncertainty_ece.py          Expected Calibration Error analysis
-speaker_heatmap.py          per-speaker domain drop heatmap
-scsn_train.py               SCSN training script
-clip_embed_val.py           CLIP embedding for AVA val clips
-clip_scene_embed.py         CLIP scene embedding for Columbia
-loss.py                     AV and visual loss functions
-loss_talknce.py             TalkNCE contrastive loss
-results/                    figures, plots, analysis outputs
+ASD_*.py                    model wrappers (one per variant)
+train_*.py                  AVA training
+dataLoader_*.py             loaders for ablations
+eval_columbia_*.py          Columbia F1 (see eval script roles below)
+run_scoring*.py             write scores.pckl from a checkpoint
+Columbia_test.py            full Columbia demo pipeline (detect → track → score)
+model_*/                    encoders / classifiers (shared S3FD under model/faceDetector/)
+utils/                      AVA metrics + repo_paths.py (default data locations)
+results/                    figures, CSVs, eval summary append log
+TalkNet-exps/               TalkNet baseline logs (see TalkNet-exps/README.md)
+requirements.txt            Python dependencies
+LICENSE                     MIT + upstream attribution
 ```
+
+### Columbia evaluation scripts
+
+| Script | Role |
+|--------|------|
+| `eval_columbia_final.py` | **Canonical** fps-corrected frame-overlap F1 (used in paper table) |
+| `eval_columbia_iou.py` | IOU-based track–GT matching (legacy; coordinate mismatch on our video) |
+| `eval_columbia_quick.py` | Fast rescoring from existing `tracks.pckl` |
+| `eval_columbia_smoothed.py` | Same protocol with temporal score smoothing |
+| `eval_columbia_scsn.py` | F1 with SCSN-calibrated scores |
+| `eval_columbia_camib.py` / `eval_columbia_irm.py` | F1 for CaMIB / IRM `pywork_*` dirs |
+
+---
+
+## Artifacts not in git
+
+| Item | Location / action |
+|------|-------------------|
+| AVA preprocessed data | `--dataPathAVA` (see LR-ASD README) |
+| Columbia crops & labels | `ColData/` at repo root, or set `COL_DATA_ROOT` |
+| S3FD face detector weights | `model/faceDetector/s3fd/sfd_face.pth` (~95 MB; from [face-detection-pytorch](https://github.com/cs-giung/face-detection-pytorch) / TalkNet-ASD) |
+| LR-ASD AVA pretrained (optional) | `weight/pretrain_AVA.model` |
+| Trained checkpoints | `exps/<experiment>/model/*.model` (gitignored) |
+| Columbia `scores.pckl` | produced by `run_scoring*.py` |
+| CLIP embeddings | `clip_embeddings/` (from `clip_embed_val.py`, `clip_scene_embed.py`) |
+| Large TalkNet CSVs | not stored; see `TalkNet-exps/README.md` |
+
+Default paths resolve via `utils/repo_paths.py` (repo root + `ColData/`). Override with environment variables `COL_DATA_ROOT` and `CLIP_EMBED_DIR`.
 
 ---
 
@@ -124,10 +159,10 @@ results/                    figures, plots, analysis outputs
 ```bash
 conda create -n asd_exp python=3.8
 conda activate asd_exp
-pip install torch torchaudio opencv-python python_speech_features \
-            pandas tqdm scikit-learn scipy matplotlib seaborn \
-            clip transformers
+pip install -r requirements.txt
 ```
+
+Place `sfd_face.pth` under `model/faceDetector/s3fd/` before running `Columbia_test.py` or any face-detection step.
 
 ---
 
@@ -140,10 +175,10 @@ python train.py --dataPathAVA /path/to/AVADataPath --savePath exps/baseline
 # Transformer ablation
 python train_ablation1_transformer.py --dataPathAVA /path/to/AVADataPath --savePath exps/transformer
 
-# FCAI (no training needed — uses two existing models)
-python eval_fcai_ava.py --dataPathAVA /path/to/AVADataPath
+# Multi-face mean pooling
+python train_ablation2.py --dataPathAVA /path/to/AVADataPath --savePath exps/ablation2_multiface
 
-# CIR variants
+# CIR
 python train_cir_020.py --dataPathAVA /path/to/AVADataPath --savePath exps/cir_020 --lambda_cir 0.20
 ```
 
@@ -152,16 +187,34 @@ python train_cir_020.py --dataPathAVA /path/to/AVADataPath --savePath exps/cir_0
 ## Evaluation
 
 ```bash
-# Columbia F1 (after running run_scoring.py to generate scores.pckl)
+# 1) Generate Columbia scores (example: baseline)
 python run_scoring.py --pretrainModel exps/baseline/model/best.model \
-    --pycropPath /path/to/ColData/col/pycrop \
-    --pyworkPath /path/to/ColData/col/pywork
+    --pycropPath ColData/col/pycrop \
+    --pyworkPath ColData/col/pywork
 
-python eval_columbia_final.py
+# 2) Canonical Columbia F1
+python eval_columbia_final.py \
+    --colSavePath ColData \
+    --pyworkPath ColData/col/pywork \
+    --pyframesPath ColData/col/pyframes
+
+# FCAI: build scores then evaluate pywork_fcai
+python eval_fcai_columbia.py
+python eval_columbia_final.py --pyworkPath ColData/col/pywork_fcai
 ```
+
+---
+
+## TalkNet baseline
+
+Comparison numbers and training logs are summarized under `TalkNet-exps/` (not full per-frame exports). See `TalkNet-exps/README.md`.
 
 ---
 
 ## Acknowledgements
 
-Built on top of [LR-ASD](https://github.com/Junhua-Liao/LR-ASD) (Liao et al., IJCV 2025) and [TalkNet-ASD](https://github.com/TaoRuijie/TalkNet-ASD) (Tao et al., ACM MM 2021).
+Built on [LR-ASD](https://github.com/Junhua-Liao/LR-ASD) (Liao et al., IJCV 2025) and [TalkNet-ASD](https://github.com/TaoRuijie/TalkNet-ASD) (Tao et al., ACM MM 2021).
+
+## License
+
+See [LICENSE](LICENSE).

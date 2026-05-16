@@ -4,8 +4,10 @@ from torch.utils.data import Dataset, DataLoader, random_split
 from tqdm import tqdm
 
 DEVICE = "cuda:0"
-EMBED_DIR = "/usershome/cs671_user6/asd_project/LR-ASD/clip_embeddings"
-VAL_RES   = "/usershome/cs671_user6/asd_project/LR-ASD/exps/exp_baseline/val_res.csv"
+from utils.repo_paths import clip_embeddings_dir, exps_path
+
+EMBED_DIR = clip_embeddings_dir()
+VAL_RES   = os.path.join(exps_path("exp_baseline"), "val_res.csv")
 SAVE_PATH = os.path.join(EMBED_DIR, "scsn.pt")
 T = 50
 

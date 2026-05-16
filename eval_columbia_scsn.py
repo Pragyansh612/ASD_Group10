@@ -7,11 +7,13 @@ from sklearn.metrics import f1_score, accuracy_score
 import torch.nn as nn
 
 DEVICE = "cuda:0"
-EMBED_DIR = "/usershome/cs671_user6/asd_project/LR-ASD/clip_embeddings"
+from utils.repo_paths import clip_embeddings_dir, col_data_root, col_pyframes, col_pywork
+
+EMBED_DIR = clip_embeddings_dir()
 SCSN_PATH = os.path.join(EMBED_DIR, "scsn.pt")
-pyworkPath   = '/usershome/cs671_user6/asd_project/ColData/col/pywork_baseline'
-pyframesPath = '/usershome/cs671_user6/asd_project/ColData/col/pyframes'
-colSavePath  = '/usershome/cs671_user6/asd_project/ColData'
+pyworkPath   = col_pywork("pywork_baseline")
+pyframesPath = col_pyframes()
+colSavePath  = col_data_root()
 T = 50
 
 ORIG_FPS = 29.97; OUR_FPS = 25.0; RATIO = OUR_FPS / ORIG_FPS

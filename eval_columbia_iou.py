@@ -2,9 +2,12 @@ import os, glob, pickle, numpy, tqdm, argparse
 from sklearn.metrics import f1_score, accuracy_score
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--colSavePath', type=str, default="/usershome/cs671_user6/asd_project/ColData")
+from utils.repo_paths import col_data_root
+
+parser.add_argument('--colSavePath', type=str, default=None)
 parser.add_argument('--scoresPath', type=str, default=None, help='Override scores.pckl path')
 args = parser.parse_args()
+args.colSavePath = args.colSavePath or col_data_root()
 
 pyworkPath   = os.path.join(args.colSavePath, 'col', 'pywork')
 pyframesPath = os.path.join(args.colSavePath, 'col', 'pyframes')

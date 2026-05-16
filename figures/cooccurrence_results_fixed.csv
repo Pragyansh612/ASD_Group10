@@ -1,7 +1,0 @@
-model,columbia_correlation,n_frames
-LR-ASD_baseline,-0.0156,51588
-Transformer,-0.5886,51588
-Multi-face,0.9242,51588
-Augmentation,0.0122,51588
-Hard_negatives,0.3646,51588
-Attn_context,0.8226,51588

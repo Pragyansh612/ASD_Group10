@@ -1,10 +1,10 @@
 import pickle, numpy as np, os, glob
 import matplotlib.pyplot as plt
 from collections import defaultdict
+from utils.repo_paths import col_pyframes, col_pywork, results_dir
 
-COLDATA  = '/usershome/cs671_user6/asd_project/ColData'
-TRACKS   = f'{COLDATA}/col/pywork/tracks.pckl'
-PYFRAMES = f'{COLDATA}/col/pyframes'
+TRACKS = os.path.join(col_pywork(), "tracks.pckl")
+PYFRAMES = col_pyframes()
 
 vidTracks = pickle.load(open(TRACKS, 'rb'))
 flist = sorted(glob.glob(f'{PYFRAMES}/*.jpg'))
@@ -125,5 +125,6 @@ ax.set_title('FCAI Frame Routing\n(Columbia)')
 plt.suptitle('Scene-Type Routing: Face Statistics Drive Model Selection',
              fontsize=13, fontweight='bold')
 plt.tight_layout()
-plt.savefig('scene_type_routing.png', dpi=150, bbox_inches='tight')
-print("\nSaved scene_type_routing.png")
+out_path = os.path.join(results_dir(), "scene_type_routing.png")
+plt.savefig(out_path, dpi=150, bbox_inches="tight")
+print(f"\nSaved {out_path}")

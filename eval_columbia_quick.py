@@ -6,8 +6,11 @@ from ASD import ASD
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--pretrainModel', type=str, required=True)
-parser.add_argument('--colSavePath', type=str, default="/usershome/cs671_user6/asd_project/ColData")
+from utils.repo_paths import col_data_root
+
+parser.add_argument('--colSavePath', type=str, default=None)
 args = parser.parse_args()
+args.colSavePath = args.colSavePath or col_data_root()
 
 args.pyworkPath = os.path.join(args.colSavePath, 'col', 'pywork')
 args.pycropPath = os.path.join(args.colSavePath, 'col', 'pycrop')

@@ -2,21 +2,27 @@ import pickle, numpy as np, os, glob
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from collections import defaultdict
+from utils.repo_paths import col_data_root, col_pyframes, col_pywork, results_dir
 
-COLDATA = '/usershome/cs671_user6/asd_project/ColData'
-PYFRAMES = f'{COLDATA}/col/pyframes'
-TRACKS   = f'{COLDATA}/col/pywork/tracks.pckl'
+PYFRAMES = col_pyframes()
+TRACKS = os.path.join(col_pywork(), "tracks.pckl")
+COLDATA = col_data_root()
+
+
+def _scores(workdir, filename="scores.pckl"):
+    return os.path.join(col_pywork(workdir), filename)
+
 
 score_files = {
-    'LR-ASD':        f'{COLDATA}/col/pywork_baseline/scores.pckl',
-    'Transformer':   f'{COLDATA}/col/pywork/scores_ablation1.pckl',
-    'Multi-face':    f'{COLDATA}/col/pywork_multiface/scores.pckl',
-    'Large':         f'{COLDATA}/col/pywork_ablation3/scores.pckl',
-    'Augmentation':  f'{COLDATA}/col/pywork_improved/scores.pckl',
-    'Hard-neg':      f'{COLDATA}/col/pywork_hardneg/scores.pckl',
-    'Attn-ctx':      f'{COLDATA}/col/pywork_attn_context/scores.pckl',
-    'TalkNCE':       f'{COLDATA}/col/pywork_talknce/scores.pckl',
-    'CIR-020':       f'{COLDATA}/col/pywork_cir020/scores.pckl',
+    "LR-ASD": _scores("pywork_baseline"),
+    "Transformer": _scores("pywork", "scores_ablation1.pckl"),
+    "Multi-face": _scores("pywork_multiface"),
+    "Large": _scores("pywork_ablation3"),
+    "Augmentation": _scores("pywork_improved"),
+    "Hard-neg": _scores("pywork_hardneg"),
+    "Attn-ctx": _scores("pywork_attn_context"),
+    "TalkNCE": _scores("pywork_talknce"),
+    "CIR-020": _scores("pywork_cir020"),
 }
 
 from sklearn.metrics import f1_score, accuracy_score
@@ -132,6 +138,6 @@ plt.colorbar(im, ax=ax, label='F1 Score (%)')
 ax.set_title('Per-Speaker Columbia F1 by Model\n(Green=high F1, Red=low F1)',
              fontsize=13, fontweight='bold')
 plt.tight_layout()
-plt.savefig('/usershome/cs671_user6/asd_project/LR-ASD/speaker_heatmap.png',
-            dpi=150, bbox_inches='tight')
-print("Saved speaker_heatmap.png")
+out_path = os.path.join(results_dir(), "speaker_heatmap.png")
+plt.savefig(out_path, dpi=150, bbox_inches="tight")
+print(f"Saved {out_path}")

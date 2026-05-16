@@ -2,8 +2,16 @@ import os, glob, pickle, torch, clip, cv2, numpy as np
 from tqdm import tqdm
 
 DEVICE = "cuda:0"
-AVA_VIDEO_ROOT = "/usershome/cs671_user6/asd_project/LR-ASD/data/clips_videos/val"
-SAVE_DIR = "/usershome/cs671_user6/asd_project/LR-ASD/clip_embeddings"
+import argparse
+from utils.repo_paths import REPO_ROOT, clip_embeddings_dir
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--avaVideoRoot", type=str, default=os.path.join(REPO_ROOT, "data", "clips_videos", "val"))
+parser.add_argument("--saveDir", type=str, default=None)
+args = parser.parse_args()
+
+AVA_VIDEO_ROOT = args.avaVideoRoot
+SAVE_DIR = args.saveDir or clip_embeddings_dir()
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 model, preprocess = clip.load("ViT-B/32", device=DEVICE)

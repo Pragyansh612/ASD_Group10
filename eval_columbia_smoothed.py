@@ -1,15 +1,19 @@
 import os, glob, pickle, numpy as np, argparse
 from sklearn.metrics import f1_score, accuracy_score
+from utils.repo_paths import col_data_root
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--scoresPath', type=str, default="/usershome/cs671_user6/asd_project/ColData/col/pywork/scores_ablation1.pckl")
-parser.add_argument('--colSavePath', type=str, default="/usershome/cs671_user6/asd_project/ColData")
+parser.add_argument('--scoresPath', type=str, default=None)
+parser.add_argument('--colSavePath', type=str, default=None)
 parser.add_argument('--window', type=int, default=5, help='Smoothing window size')
 parser.add_argument('--threshold', type=float, default=-1.0, help='Speaking threshold')
 args = parser.parse_args()
+args.colSavePath = args.colSavePath or col_data_root()
 
 pyworkPath   = os.path.join(args.colSavePath, 'col', 'pywork')
 pyframesPath = os.path.join(args.colSavePath, 'col', 'pyframes')
+if args.scoresPath is None:
+    args.scoresPath = os.path.join(pyworkPath, 'scores_ablation1.pckl')
 
 vidTracks = pickle.load(open(os.path.join(pyworkPath, 'tracks.pckl'), 'rb'))
 scores    = pickle.load(open(args.scoresPath, 'rb'))

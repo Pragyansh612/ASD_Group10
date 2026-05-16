@@ -62,6 +62,9 @@ ax.axvline(x=0, color='gray', linestyle=':', alpha=0.5)
 ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/usershome/cs671_user6/asd_project/LR-ASD/scatter_correlation_drop.png',
-            dpi=150, bbox_inches='tight')
-print("\nSaved scatter_correlation_drop.png")
+import os
+from utils.repo_paths import results_dir
+
+out_path = os.path.join(results_dir(), "scatter_correlation_drop.png")
+plt.savefig(out_path, dpi=150, bbox_inches="tight")
+print(f"\nSaved {out_path}")

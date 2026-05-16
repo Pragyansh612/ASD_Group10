@@ -3,15 +3,22 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import torch
 
-COLDATA = '/usershome/cs671_user6/asd_project/ColData'
-TRACKS  = f'{COLDATA}/col/pywork/tracks.pckl'
+import os
+from utils.repo_paths import col_pywork, results_dir
+
+TRACKS = os.path.join(col_pywork(), "tracks.pckl")
+
+
+def _scores(workdir, filename="scores.pckl"):
+    return os.path.join(col_pywork(workdir), filename)
+
 
 score_files = {
-    'LR-ASD':       f'{COLDATA}/col/pywork_baseline/scores.pckl',
-    'Transformer':  f'{COLDATA}/col/pywork/scores_ablation1.pckl',
-    'Multi-face':   f'{COLDATA}/col/pywork_multiface/scores.pckl',
-    'CIR-020':      f'{COLDATA}/col/pywork_cir020/scores.pckl',
-    'TalkNCE':      f'{COLDATA}/col/pywork_talknce/scores.pckl',
+    "LR-ASD": _scores("pywork_baseline"),
+    "Transformer": _scores("pywork", "scores_ablation1.pckl"),
+    "Multi-face": _scores("pywork_multiface"),
+    "CIR-020": _scores("pywork_cir020"),
+    "TalkNCE": _scores("pywork_talknce"),
 }
 
 import glob
@@ -137,6 +144,6 @@ for ax, (mname, _) in zip(axes, ece_results.items()):
 
 plt.suptitle('Reliability Diagrams — Columbia Cross-Domain', fontsize=12, fontweight='bold')
 plt.tight_layout()
-plt.savefig('/usershome/cs671_user6/asd_project/LR-ASD/uncertainty_ece.png',
-            dpi=150, bbox_inches='tight')
-print("Saved uncertainty_ece.png")
+out_path = os.path.join(results_dir(), "uncertainty_ece.png")
+plt.savefig(out_path, dpi=150, bbox_inches="tight")
+print(f"Saved {out_path}")

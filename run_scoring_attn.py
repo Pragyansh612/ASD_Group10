@@ -2,12 +2,15 @@ import os, glob, pickle, torch, tqdm, math, cv2, argparse
 import numpy, python_speech_features
 from scipy.io import wavfile
 from ASD_attn_context import ASD
+from utils.repo_paths import col_pycrop, col_pywork
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--pretrainModel', type=str, required=True)
-parser.add_argument('--pycropPath', type=str, default="/usershome/cs671_user6/asd_project/ColData/col/pycrop")
-parser.add_argument('--pyworkPath', type=str, default="/usershome/cs671_user6/asd_project/ColData/col/pywork")
+parser.add_argument('--pycropPath', type=str, default=None)
+parser.add_argument('--pyworkPath', type=str, default=None)
 args = parser.parse_args()
+args.pycropPath = args.pycropPath or col_pycrop()
+args.pyworkPath = args.pyworkPath or col_pywork("pywork_attn_context")
 
 s = ASD()
 s.loadParameters(args.pretrainModel)

@@ -1,8 +1,0 @@
-model,ava_correlation,n_frames
-LR-ASD_baseline,-0.1719,125275
-Multi-face,0.5910,125275
-ablation1_transformer,-0.0873,125275
-ablation3_large,-0.0180,125275
-improved,-0.0506,125275
-hardneg,0.1318,125275
-attn_context,0.3353,125275

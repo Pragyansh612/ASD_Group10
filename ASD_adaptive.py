@@ -1,8 +1,6 @@
 import torch, numpy, os, glob, pickle, math, cv2, tqdm, argparse
 import python_speech_features
 from scipy.io import wavfile
-import sys
-sys.path.insert(0, '/usershome/cs671_user6/asd_project/LR-ASD')
 from ASD import ASD as ASD_baseline
 from ASD_transformer import ASD as ASD_transformer
 
